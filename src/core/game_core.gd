@@ -1,5 +1,5 @@
-extends RefCounted
 class_name GameCore
+extends RefCounted
 
 # Pure game logic - no UI dependencies
 # Can be used by GUI, CLI, or tests

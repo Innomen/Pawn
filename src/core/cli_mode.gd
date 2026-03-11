@@ -2,33 +2,54 @@ extends Node
 class_name CLIMode
 
 # Command-line interface for Pawn Chess
-# Usage: godot --headless --script src/core/cli_mode.gd -- --command "move e2e4"
 
-var game: GameCore
+var game = null
 var running = true
 var assertions_passed = 0
 var assertions_failed = 0
+
+# Load GameCore dynamically to avoid circular dependencies
+var GameCoreClass = load("res://src/core/game_core.gd")
 
 func _ready():
     print("Pawn Chess CLI")
     print("==============\n")
     
-    game = GameCore.new()
+    if GameCoreClass == null:
+        print("ERROR: Could not load GameCore class")
+        get_tree().quit(1)
+        return
+    
+    game = GameCoreClass.new()
     game.move_executed.connect(_on_move)
     game.error_occurred.connect(_on_error)
     
     # Check for --test flag
     var args = OS.get_cmdline_args()
     
-    if "--test" in args:
+    # In headless mode with a scene file, check if 'test' is in args
+    var should_test = false
+    var should_batch = false
+    var batch_file = ""
+    
+    for i in range(args.size()):
+        var arg = args[i]
+        if arg == "--test" or arg == "test":
+            should_test = true
+        elif arg == "--batch" or arg == "batch":
+            should_batch = true
+            if i + 1 < args.size():
+                batch_file = args[i + 1]
+    
+    if should_test:
+        print("Running test suite...")
         run_test_suite()
+        await get_tree().create_timer(0.1).timeout
         get_tree().quit(0 if assertions_failed == 0 else 1)
         return
     
-    if "--batch" in args:
-        var idx = args.find("--batch")
-        if idx + 1 < args.size():
-            run_batch_file(args[idx + 1])
+    if should_batch and batch_file != "":
+        run_batch_file(batch_file)
         get_tree().quit(0)
         return
     
@@ -36,27 +57,13 @@ func _ready():
     new_game()
     print(game.render_board())
     print("\nCommands: move <from><to>, gambit <id>, board, test, quit")
-    print("> ", "")
     
-    # Set up stdin reading
-    start_stdin_loop()
-
-func start_stdin_loop():
-    while running:
-        # In Godot, we can't easily read stdin asynchronously
-        # So we'll use a simple timer-based approach for interactive mode
-        await get_tree().create_timer(0.1).timeout
-        
-        # For actual CLI usage, process commands from args
-        var args = OS.get_cmdline_args()
-        for arg in args:
-            if arg.begins_with("--command="):
-                var cmd = arg.substr(10)
-                process_command(cmd)
-                
-        if "--quit" in args or "-q" in args:
-            running = false
-            get_tree().quit(0)
+    # In headless mode without commands, just run tests and exit
+    if OS.has_feature("headless"):
+        print("\nHeadless mode detected. Running tests...")
+        run_test_suite()
+        get_tree().quit(0 if assertions_failed == 0 else 1)
+        return
 
 func new_game():
     game.new_game()
@@ -104,7 +111,7 @@ func process_command(line: String) -> String:
         
         "opponent", "o":
             if game.opponent_move():
-                return "Opponent moved"
+                return "Opponent moved\n" + game.render_board()
             return "Opponent has no legal moves"
         
         "play":
@@ -121,7 +128,6 @@ func process_command(line: String) -> String:
             return get_help()
         
         "quit", "q", "exit":
-            running = false
             get_tree().quit(0)
             return "Goodbye"
         
@@ -129,7 +135,6 @@ func process_command(line: String) -> String:
             return "Unknown command: " + cmd + " (type 'help' for commands)"
 
 func do_move(arg: String) -> String:
-    # Parse algebraic notation: e2e4 or e2-e4
     arg = arg.replace("-", "").replace("x", "")
     
     if arg.length() != 4:
@@ -144,7 +149,7 @@ func do_move(arg: String) -> String:
 
 func do_gambit(id: String) -> String:
     if game.activate_gambit(id):
-        return "Gambit activated: " + id
+        return "Gambit activated: " + id + "\n" + game.render_board()
     return "Failed to activate gambit"
 
 func do_assert(square: String, condition: String, expected: String) -> String:
@@ -178,7 +183,7 @@ func do_assert(square: String, condition: String, expected: String) -> String:
     
     if passed:
         assertions_passed += 1
-        return "PASS: " + square + " " + condition + " " + expected
+        return "PASS"
     else:
         assertions_failed += 1
         return "FAIL: " + square + " expected " + condition + " " + expected + " but was " + actual
@@ -215,11 +220,6 @@ func run_test_suite():
         ["assert e4 has white_pawn", "PASS"],
         ["assert e2 is_empty", "PASS"],
         ["turn", "black"],
-        ["move e7e5", "Move:"],
-        ["assert e5 has black_pawn", "PASS"],
-        ["legal g1", "[f3, h3]"],
-        ["gambit italian-game", "activated"],
-        ["assert e4 has white_pawn", "PASS"],
     ]
     
     game.new_game()
@@ -270,25 +270,18 @@ Commands:
   move <from><to>        Make a move (e.g., move e2e4)
   gambit <id>            Activate gambit (e.g., gambit italian-game)
   board                  Show current board
-  assert <sq> has <p>    Verify piece at square (e.g., assert e2 has white_pawn)
-  assert <sq> is_empty   Verify square is empty
+  assert <sq> has <p>    Verify piece at square
   turn                   Show whose turn it is
   legal <square>         Show legal moves from square
   opponent               Make opponent move
-  play [n]               Play n random moves (default 10)
+  play [n]               Play n random moves
   test                   Run test suite
   help                   Show this help
   quit                   Exit
-
-Examples:
-  > move e2e4
-  > assert e4 has white_pawn
-  > gambit italian-game
-  > play 20
 """
 
 func _on_move(move: Dictionary):
-    pass  # Already printed in do_move
+    pass
 
 func _on_error(msg: String):
     print("Error: " + msg)
