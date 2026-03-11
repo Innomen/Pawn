@@ -40,11 +40,11 @@ func _create_placeholder():
     label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
     label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
     label.add_theme_font_size_override("font_size", 60)
+    label.custom_minimum_size = Vector2(80, 80)
     
-    # This is a workaround - in a real implementation, you'd render to a texture
-    # For now, we'll just use the label as a child
+    # Center the label on the square (relative to parent Sprite2D center)
     add_child(label)
-    label.position = Vector2(-30, -40)
+    label.position = Vector2(-40, -40)  # Offset by half the label size to center it
 
 func _setup_click_area():
     var area = Area2D.new()

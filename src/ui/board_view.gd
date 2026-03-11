@@ -48,7 +48,8 @@ func _create_piece_at(pos: Vector2i):
     var piece = piece_scene.instantiate()
     
     piece.setup(piece_data)
-    piece.position = _board_to_pixel(pos)
+    # Center piece on square (square_size / 2 = 40)
+    piece.position = _board_to_pixel(pos) + Vector2(square_size / 2, square_size / 2)
     piece.clicked.connect(_on_piece_clicked)
     
     piece.name = "Piece_" + str(pos.x) + "_" + str(pos.y)
@@ -124,8 +125,8 @@ func _execute_move(from: Vector2i, to: Vector2i):
 func animate_move(move: Dictionary):
     var piece_node = pieces_node.get_node_or_null("Piece_" + str(move.from.x) + "_" + str(move.from.y))
     if piece_node:
-        # Animate to new position
-        var target_pos = _board_to_pixel(move.to)
+        # Animate to new position (centered on square)
+        var target_pos = _board_to_pixel(move.to) + Vector2(square_size / 2, square_size / 2)
         
         # Remove captured piece if any
         var captured = pieces_node.get_node_or_null("Piece_" + str(move.to.x) + "_" + str(move.to.y))
