@@ -5,9 +5,9 @@ extends EditorScript
 # Or from command line: godot --headless --script test/run_tests.gd
 
 func _run():
-    print("="*50)
+    print("==================================================")
     print("PAWN CHESS - HEADLESS TEST RUNNER")
-    print("="*50)
+    print("==================================================")
     print("")
     
     # Wait for autoloads to be ready
@@ -21,9 +21,9 @@ func _run():
     
     # Print results
     print("")
-    print("="*50)
+    print("==================================================")
     print("TEST SUMMARY")
-    print("="*50)
+    print("==================================================")
     print("Total:  %d" % results.total)
     print("Passed: %d" % results.passed)
     print("Failed: %d" % results.failed)
@@ -35,7 +35,7 @@ func _run():
         print("FAILED TESTS:")
         for r in results.results:
             if not r.passed:
-                print("  ✗ [%s] %s - %s" % [r.suite, r.name, r.message])
+                print("  [X] [%s] %s - %s" % [r.suite, r.name, r.message])
         print("")
     
     # Exit with appropriate code
@@ -56,4 +56,4 @@ func _run():
     if Engine.is_editor_hint():
         print("(Running in editor - not quitting)")
     else:
-        get_tree().quit(exit_code)
+        quit(exit_code)

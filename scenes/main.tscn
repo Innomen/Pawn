@@ -17,4 +17,4 @@ position = Vector2(50, 50)
 
 [node name="GameUI" parent="UI" instance=ExtResource("3_4r5t6")]
 
-[node name="DebugConsole" parent="UI" instance=ExtResource("4_debug")"]
+[node name="DebugConsole" parent="UI" instance=ExtResource("4_debug")]

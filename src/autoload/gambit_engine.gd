@@ -138,7 +138,7 @@ func _parse_san(san: String) -> Dictionary:
     for pos in GameState.board.keys():
         var piece = GameState.board[pos]
         if piece.type == piece_type:
-            if piece.color == (PieceColor.WHITE if active_gambit.for_color == "white" else PieceColor.BLACK):
+            if piece.color == (GameState.PieceColor.WHITE if active_gambit.for_color == "white" else GameState.PieceColor.BLACK):
                 var legal = GameState.get_legal_moves(pos)
                 if target_square in legal:
                     result.from = pos
@@ -184,8 +184,8 @@ func _on_move_made(move: Dictionary):
         return
     
     # Check if this was an opponent move
-    var is_opponent = (move.piece.color == PieceColor.WHITE and active_gambit.for_color != "white") or \
-                      (move.piece.color == PieceColor.BLACK and active_gambit.for_color != "black")
+    var is_opponent = (move.piece.color == GameState.PieceColor.WHITE and active_gambit.for_color != "white") or \
+                      (move.piece.color == GameState.PieceColor.BLACK and active_gambit.for_color != "black")
     
     if is_opponent:
         # Check if they followed the expected line
