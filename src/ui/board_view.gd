@@ -13,14 +13,18 @@ var square_scene = preload("res://src/ui/square.tscn")
 var piece_scene = preload("res://scenes/piece.tscn")
 
 var selected_square: Vector2i = Vector2i(-1, -1)
-var legal_moves: Array[Vector2i] = []
+var legal_moves: Array = []
 
 func _ready():
     _create_board()
-    _create_pieces()
     
+    # Connect to GameState signals
     GameState.move_made.connect(_on_move_made)
     GameState.turn_changed.connect(_on_turn_changed)
+    
+    # Wait a frame for GameState to be ready, then create pieces
+    await get_tree().process_frame
+    _refresh_pieces()
 
 func _create_board():
     for rank in range(8):
