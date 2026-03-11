@@ -1,0 +1,50 @@
+# Pawn Chess CLI Test Suite
+# Run with: godot --headless --script src/core/cli_mode.gd -- --batch test/cli_test_suite.txt
+
+# Test 1: Basic board setup
+assert e2 has white_pawn
+assert e7 has black_pawn
+assert e1 has white_king
+assert e8 has black_king
+assert d1 has white_queen
+assert d8 has black_queen
+
+# Test 2: Basic pawn moves
+move e2e4
+assert e4 has white_pawn
+assert e2 is_empty
+
+move e7e5
+assert e5 has black_pawn
+assert e7 is_empty
+
+# Test 3: Knight moves
+new
+move g1f3
+assert f3 has white_knight
+assert g1 is_empty
+
+# Test 4: Gambit activation
+new
+move e2e4
+assert e4 has white_pawn
+
+# Reset and try gambit
+new
+gambit italian-game
+assert e4 has white_pawn
+
+# Test 5: Turn switching  
+new
+assert turn is white
+turn
+# After move, turn should switch
+move e2e4
+turn
+
+# Test 6: Legal moves
+new
+legal e2
+legal g1
+
+# All tests complete
