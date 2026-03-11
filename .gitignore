@@ -1,0 +1,34 @@
+# Godot-specific ignores
+.import/
+export.cfg
+export_presets.cfg
+
+# Godot 4+ specific ignores
+.godot/
+
+# Imported assets (automatically generated)
+*.import
+
+# Mono-specific ignores
+.mono/
+data_*/
+mono_crash.*.json
+
+# System/tool-specific ignores
+.DS_Store
+Thumbs.db
+*.tmp
+*.swp
+*.swo
+*~
+
+# Build outputs
+build/
+bin/
+lib/
+
+# IDE
+.idea/
+.vscode/
+*.csproj
+*.sln

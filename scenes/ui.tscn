@@ -1,0 +1,224 @@
+[gd_scene load_steps=3 format=3 uid="uid://c3m8qbqm2k3mq"]
+
+[ext_resource type="Script" path="res://src/ui/game_ui.gd" id="1_yuiop"]
+[ext_resource type="Script" path="res://src/ui/gambit_menu.gd" id="2_asdfg"]
+
+[node name="GameUI" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_yuiop")
+
+[node name="GameInfo" type="Panel" parent="."]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_bottom = 60.0
+grow_horizontal = 2
+
+[node name="HBoxContainer" type="HBoxContainer" parent="GameInfo"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 20.0
+offset_right = -20.0
+grow_horizontal = 2
+grow_vertical = 2
+alignment = 1
+
+[node name="TurnLabel" type="Label" parent="GameInfo/HBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "White to move"
+horizontal_alignment = 1
+
+[node name="VSeparator" type="VSeparator" parent="GameInfo/HBoxContainer"]
+layout_mode = 2
+
+[node name="PhaseLabel" type="Label" parent="GameInfo/HBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Opening Phase"
+horizontal_alignment = 1
+
+[node name="VSeparator2" type="VSeparator" parent="GameInfo/HBoxContainer"]
+layout_mode = 2
+
+[node name="GambitLabel" type="Label" parent="GameInfo/HBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "No active gambit"
+horizontal_alignment = 1
+
+[node name="GambitPanel" type="Panel" parent="."]
+layout_mode = 1
+anchors_preset = 9
+anchor_bottom = 1.0
+offset_left = 720.0
+offset_top = 70.0
+offset_right = 1280.0
+offset_bottom = -10.0
+grow_vertical = 2
+
+[node name="GambitMenu" type="Control" parent="GambitPanel"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("2_asdfg")
+
+[node name="ScrollContainer" type="ScrollContainer" parent="GambitPanel/GambitMenu"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 10.0
+offset_top = 10.0
+offset_right = -10.0
+offset_bottom = -10.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="GambitPanel/GambitMenu/ScrollContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="TitleLabel" type="Label" parent="GambitPanel/GambitMenu/ScrollContainer/VBoxContainer"]
+layout_mode = 2
+text = "Available Gambits"
+horizontal_alignment = 1
+
+[node name="HSeparator" type="HSeparator" parent="GambitPanel/GambitMenu/ScrollContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="OpeningsSection" type="VBoxContainer" parent="GambitPanel/GambitMenu/ScrollContainer/VBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="OpeningsLabel" type="Label" parent="GambitPanel/GambitMenu/ScrollContainer/VBoxContainer/OpeningsSection"]
+layout_mode = 2
+text = "Openings"
+
+[node name="OpeningsList" type="VBoxContainer" parent="GambitPanel/GambitMenu/ScrollContainer/VBoxContainer/OpeningsSection"]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="TacticsSection" type="VBoxContainer" parent="GambitPanel/GambitMenu/ScrollContainer/VBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="TacticsLabel" type="Label" parent="GambitPanel/GambitMenu/ScrollContainer/VBoxContainer/TacticsSection"]
+layout_mode = 2
+text = "Tactics"
+
+[node name="TacticsList" type="VBoxContainer" parent="GambitPanel/GambitMenu/ScrollContainer/VBoxContainer/TacticsSection"]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="NoGambitsLabel" type="Label" parent="GambitPanel/GambitMenu/ScrollContainer/VBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "No gambits available"
+horizontal_alignment = 1
+
+[node name="HSeparator2" type="HSeparator" parent="GambitPanel/GambitMenu/ScrollContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="SuggestMoveButton" type="Button" parent="GambitPanel/GambitMenu/ScrollContainer/VBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "💡 Suggest a Move"
+
+[node name="ActiveGambitPanel" type="Panel" parent="GambitPanel/GambitMenu"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 1
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 10.0
+offset_top = -100.0
+offset_right = -10.0
+offset_bottom = -10.0
+grow_horizontal = 2
+grow_vertical = 0
+
+[node name="VBoxContainer" type="VBoxContainer" parent="GambitPanel/GambitMenu/ActiveGambitPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 10.0
+offset_top = 10.0
+offset_right = -10.0
+offset_bottom = -10.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="ActiveNameLabel" type="Label" parent="GambitPanel/GambitMenu/ActiveGambitPanel/VBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Active Gambit"
+horizontal_alignment = 1
+
+[node name="ActiveProgressLabel" type="Label" parent="GambitPanel/GambitMenu/ActiveGambitPanel/VBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Move 1 of 5"
+horizontal_alignment = 1
+
+[node name="StopButton" type="Button" parent="GambitPanel/GambitMenu/ActiveGambitPanel/VBoxContainer"]
+layout_mode = 2
+text = "Stop Gambit"
+
+[node name="OpponentPanel" type="Panel" parent="."]
+layout_mode = 1
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 10.0
+offset_top = -100.0
+offset_right = 200.0
+offset_bottom = -10.0
+grow_vertical = 0
+
+[node name="VBoxContainer" type="VBoxContainer" parent="OpponentPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 10.0
+offset_top = 10.0
+offset_right = -10.0
+offset_bottom = -10.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="OpponentLabel" type="Label" parent="OpponentPanel/VBoxContainer"]
+layout_mode = 2
+text = "Opponent"
+horizontal_alignment = 1
+
+[node name="OpponentSelector" type="OptionButton" parent="OpponentPanel/VBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+item_count = 4
+selected = 0
+popup/item_0/text = "Random Randy"
+popup/item_0/id = 0
+popup/item_1/text = "Greedy Gary"
+popup/item_1/id = 1
+popup/item_2/text = "Master Minimax"
+popup/item_2/id = 2
+popup/item_3/text = "Expert Emma"
+popup/item_3/id = 3
+
+[node name="RestartButton" type="Button" parent="OpponentPanel/VBoxContainer"]
+layout_mode = 2
+text = "New Game"

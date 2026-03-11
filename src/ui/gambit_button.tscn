@@ -1,0 +1,7 @@
+[gd_scene format=3 uid="uid://gambitbutton_template"]
+
+[node name="GambitButton" type="Button"]
+custom_minimum_size = Vector2(0, 40)
+offset_right = 200.0
+offset_bottom = 40.0
+text = "Gambit Name"

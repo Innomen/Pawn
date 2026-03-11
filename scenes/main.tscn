@@ -1,0 +1,17 @@
+[gd_scene load_steps=4 format=3 uid="uid://b4x3ljwwbm3nj"]
+
+[ext_resource type="Script" path="res://src/core/game_controller.gd" id="1_8yjq4"]
+[ext_resource type="PackedScene" uid="uid://c7b1s6k2nquxq" path="res://scenes/board.tscn" id="2_l2v3p"]
+[ext_resource type="PackedScene" uid="uid://c3m8qbqm2k3mq" path="res://scenes/ui.tscn" id="3_4r5t6"]
+
+[node name="Main" type="Node"]
+script = ExtResource("1_8yjq4")
+
+[node name="Game" type="Node2D" parent="."]
+
+[node name="Board" parent="Game" instance=ExtResource("2_l2v3p")]
+position = Vector2(50, 50)
+
+[node name="UI" type="CanvasLayer" parent="."]
+
+[node name="GameUI" parent="UI" instance=ExtResource("3_4r5t6")]
