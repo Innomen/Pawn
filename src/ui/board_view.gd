@@ -19,11 +19,17 @@ func _ready():
     _create_board()
     
     # Connect to GameState signals
+    GameState.board_ready.connect(_on_board_ready)
     GameState.move_made.connect(_on_move_made)
     GameState.turn_changed.connect(_on_turn_changed)
     
-    # Wait a frame for GameState to be ready, then create pieces
-    await get_tree().process_frame
+    # If board is already set up, create pieces immediately
+    if GameState.board.size() > 0:
+        _refresh_pieces()
+    # Otherwise wait for board_ready signal
+
+func _on_board_ready():
+    print("BoardView: Board ready, creating pieces (" + str(GameState.board.size()) + ")")
     _refresh_pieces()
 
 func _create_board():

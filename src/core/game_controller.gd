@@ -1,98 +1,85 @@
 extends Node
 
-# Game Controller - bridges GameCore with the GUI
-# All game logic is in GameCore, this handles presentation
+# Game Controller - Initializes game and coordinates systems
 
 @onready var board: Node2D = $Game/Board
 @onready var ui: Control = $UI/GameUI
 
-var game: GameCore
 var opponent_type: int = 0  # 0=random, 1=greedy, etc.
 
 func _ready():
     print("GameController ready")
     
-    # Create game core
-    game = GameCore.new()
-    game.move_executed.connect(_on_move_executed)
-    game.turn_changed.connect(_on_turn_changed)
-    game.gambit_activated.connect(_on_gambit_activated)
-    game.gambit_completed.connect(_on_gambit_completed)
-    game.error_occurred.connect(_on_error)
+    # IMPORTANT: Set up GameState BEFORE anything else tries to use it
+    GameState.setup_standard()
     
-    # Start game
-    start_new_game()
-
-func start_new_game():
-    print("Starting new game")
-    game.new_game()
+    # Connect signals
+    GameState.turn_changed.connect(_on_turn_changed)
+    GameState.game_ended.connect(_on_game_ended)
+    GameState.move_made.connect(_on_move_made)
+    GambitEngine.gambit_completed.connect(_on_gambit_completed)
+    GambitEngine.gambit_interrupted.connect(_on_gambit_interrupted)
+    OpponentAI.opponent_move_ready.connect(_on_opponent_move)
+    TurnPhaseManager.phase_changed.connect(_on_phase_changed)
     
-    # Sync board with game state
-    _sync_board_to_game()
+    # Set opponent
+    OpponentAI.set_opponent(opponent_type, "black")
+    
+    # Start turn phase
+    TurnPhaseManager.start_turn("white")
     
     # Update UI
-    ui.update_display(game)
-
-func _sync_board_to_game():
-    # Clear existing pieces
-    for child in board.pieces_node.get_children():
-        child.queue_free()
-    
-    # Create pieces from game state
-    for sq in game.board.keys():
-        var piece_data = game.board[sq]
-        var pos = _square_to_coords(sq)
-        board._create_piece_at(pos, piece_data)
-
-func make_move(from_sq: String, to_sq: String) -> bool:
-    var success = game.make_move(from_sq, to_sq)
-    if success:
-        # Animate on board
-        var from_pos = _square_to_coords(from_sq)
-        var to_pos = _square_to_coords(to_sq)
-        board.animate_move({"from": from_sq, "to": to_sq, "from_pos": from_pos, "to_pos": to_pos})
-        
-        # Update UI
-        ui.update_display(game)
-    return success
-
-func activate_gambit(gambit_id: String) -> bool:
-    return game.activate_gambit(gambit_id)
-
-func _on_move_executed(move: Dictionary):
-    # Handle post-move logic
-    pass
+    ui.update_display()
 
 func _on_turn_changed(color: String):
     ui.update_turn(color)
     
-    # If opponent's turn, request move
-    if color == "black":
-        await get_tree().create_timer(0.5).timeout
-        _make_opponent_move()
+    # Check for opponent turn
+    if color == "black" and not GameState.is_game_over():
+        OpponentAI.request_move()
 
-func _on_gambit_activated(gambit: Gambit):
-    ui.show_gambit_activated(gambit)
+func _on_game_ended(result: String, winner: String):
+    print("Game ended: " + result + " - Winner: " + winner)
+    ui.show_game_over(result, winner)
 
-func _on_gambit_completed(gambit: Gambit, success: bool):
-    ui.show_gambit_completed(gambit, success)
+func _on_move_made(move: Dictionary):
+    ui.update_display()
+    
+    # Check for phase transition
+    if TurnPhaseManager.current_phase == TurnPhaseManager.TurnPhase.MOVE_RESOLUTION:
+        TurnPhaseManager.set_phase(TurnPhaseManager.TurnPhase.GAMBIT_CHECK)
 
-func _on_error(msg: String):
-    print("Game error: " + msg)
+func _on_gambit_completed(gambit):
+    print("Gambit completed: " + gambit.name)
+    ui.show_gambit_completed(gambit)
 
-func _make_opponent_move():
-    # Simple random opponent for now
-    var moves = game.get_all_legal_moves("black")
-    if moves.is_empty():
+func _on_gambit_interrupted(gambit, reason):
+    print("Gambit interrupted: " + gambit.name + " - " + reason)
+    ui.show_gambit_interrupted(gambit, reason)
+
+func _on_opponent_move(move: Dictionary):
+    if move.is_empty():
         return
     
-    var move = moves[randi() % moves.size()]
-    make_move(move.from, move.to)
+    GameState.make_move(move.from, move.to)
+    board.animate_move(move)
 
-func _square_to_coords(sq: String) -> Vector2i:
-    var file = sq.unicode_at(0) - 97
-    var rank = 8 - int(sq[1])
-    return Vector2i(file, rank)
+func _on_phase_changed(phase):
+    match phase:
+        TurnPhaseManager.TurnPhase.GAMBIT_CHECK:
+            _process_gambit_check()
+        TurnPhaseManager.TurnPhase.END_PHASE:
+            TurnPhaseManager.set_phase(TurnPhaseManager.TurnPhase.TURN_END)
+
+func _process_gambit_check():
+    # Move to end phase
+    TurnPhaseManager.set_phase(TurnPhaseManager.TurnPhase.END_PHASE)
+
+func set_opponent_type(type: int):
+    opponent_type = type
+    OpponentAI.set_opponent(type, "black")
 
 func restart_game():
-    start_new_game()
+    GameState.setup_standard()
+    TurnPhaseManager.start_turn("white")
+    ui.update_display()

@@ -1,5 +1,6 @@
 extends Node
 
+signal board_ready()  # Emitted when board is set up and ready for rendering
 signal turn_changed(color: String)
 signal move_made(move: Dictionary)
 signal game_ended(result: String, winner: String)
@@ -41,7 +42,10 @@ func setup_standard():
     _setup_pawns()
     _setup_pieces()
     
-    DebugLogger.log_info("Standard chess position set up")
+    DebugLogger.log_info("Standard chess position set up: " + str(board.size()) + " pieces")
+    
+    # Notify that board is ready for rendering
+    board_ready.emit()
 
 func _setup_pawns():
     for file in range(8):
