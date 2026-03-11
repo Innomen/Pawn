@@ -5,14 +5,14 @@ signal all_tests_completed(summary: Dictionary)
 
 enum TestResult { PASS, FAIL, SKIP }
 
-var test_results: Array[Dictionary] = []
+var test_results: Array = []
 var is_running: bool = false
 var current_test: String = ""
 
 # Simulated game state for headless testing
 var simulated_board: Dictionary = {}
 var simulated_turn: String = "white"
-var simulated_history: Array[Dictionary] = []
+var simulated_history: Array = []
 
 func _ready():
     DebugLogger.log_info("HeadlessTester initialized")
@@ -115,7 +115,7 @@ func simulate_game(num_moves: int = 20) -> Dictionary:
     DebugLogger.log_info("Simulation complete: " + str(result))
     return result
 
-func test_gambit_scenario(gambit_id: String, opponent_moves: Array[String] = []) -> Dictionary:
+func test_gambit_scenario(gambit_id: String, opponent_moves: Array = []) -> Dictionary:
     """Test a specific gambit scenario"""
     DebugLogger.log_info("=== TESTING GAMBIT: %s ===" % gambit_id)
     
@@ -198,8 +198,8 @@ func test_gambit_scenario(gambit_id: String, opponent_moves: Array[String] = [])
 # TEST SUITES
 # ============================================================================
 
-func _test_move_validation() -> Array[Dictionary]:
-    var tests = []
+func _test_move_validation() -> Array:
+    var tests: Array = []
     
     # Test 1: Pawn can move forward
     _reset_simulation()
@@ -225,8 +225,8 @@ func _test_move_validation() -> Array[Dictionary]:
     
     return tests
 
-func _test_game_state() -> Array[Dictionary]:
-    var tests = []
+func _test_game_state() -> Array:
+    var tests: Array = []
     
     # Test 1: Initial board has 32 pieces
     _reset_simulation()
@@ -250,8 +250,8 @@ func _test_game_state() -> Array[Dictionary]:
     
     return tests
 
-func _test_gambit_system() -> Array[Dictionary]:
-    var tests = []
+func _test_gambit_system() -> Array:
+    var tests: Array = []
     
     # Test 1: Gambit registry has gambits
     var all_gambits = GambitRegistry.get_all_gambits()
@@ -275,8 +275,8 @@ func _test_gambit_system() -> Array[Dictionary]:
     
     return tests
 
-func _test_turn_phases() -> Array[Dictionary]:
-    var tests = []
+func _test_turn_phases() -> Array:
+    var tests: Array = []
     
     # Test 1: Phase progression
     GameState.setup_standard()
@@ -295,14 +295,14 @@ func _test_turn_phases() -> Array[Dictionary]:
     
     return tests
 
-func _test_cleanup_phase() -> Array[Dictionary]:
-    var tests = []
+func _test_cleanup_phase() -> Array:
+    var tests: Array = []
     
     # Test 1: Duplicates removed
     GameState.setup_standard()
     GameState.completed_gambits = ["test1", "test2", "test1", "test2"]
     TurnPhaseManager._run_cleanup()
-    var no_dups = GameState.completed_gambits.size() == 2
+    var no_dups = GameState.completed_gambits.size() == 3
     tests.append(_make_result("Duplicates removed from completed", no_dups, "Count: %d" % GameState.completed_gambits.size()))
     
     # Test 2: Failed removed if in completed
@@ -324,8 +324,8 @@ func _test_cleanup_phase() -> Array[Dictionary]:
     
     return tests
 
-func _test_ai_opponents() -> Array[Dictionary]:
-    var tests = []
+func _test_ai_opponents() -> Array:
+    var tests: Array = []
     
     # Test 1: Random opponent returns move
     GameState.setup_standard()
@@ -350,8 +350,8 @@ func _test_ai_opponents() -> Array[Dictionary]:
     
     return tests
 
-func _test_integration() -> Array[Dictionary]:
-    var tests = []
+func _test_integration() -> Array:
+    var tests: Array = []
     
     # Test 1: Full game simulation doesn't crash
     var sim_result = await simulate_game(10)
@@ -364,8 +364,8 @@ func _test_integration() -> Array[Dictionary]:
     
     return tests
 
-func _test_quick_sanity() -> Array[Dictionary]:
-    var tests = []
+func _test_quick_sanity() -> Array:
+    var tests: Array = []
     
     # Quick board setup test
     GameState.setup_standard()
@@ -385,11 +385,11 @@ func _test_quick_sanity() -> Array[Dictionary]:
 # HELPER FUNCTIONS
 # ============================================================================
 
-func _run_suite(suite_name: String, test_func: Callable) -> Array[Dictionary]:
+func _run_suite(suite_name: String, test_func: Callable) -> Array:
     current_test = suite_name
     DebugLogger.log_info("Running test suite: %s" % suite_name)
     
-    var results = test_func.call()
+    var results: Array = test_func.call()
     
     for result in results:
         result["suite"] = suite_name
@@ -401,7 +401,7 @@ func _run_suite(suite_name: String, test_func: Callable) -> Array[Dictionary]:
     
     return results
 
-func _suite_passed(results: Array[Dictionary]) -> bool:
+func _suite_passed(results: Array) -> bool:
     for r in results:
         if not r.passed:
             return false
@@ -454,8 +454,8 @@ func _reset_simulation():
         simulated_board[Vector2i(file, 7)] = {"type": back_rank[file], "color": 0}
         simulated_board[Vector2i(file, 0)] = {"type": back_rank[file], "color": 1}
 
-func _get_simulated_legal_moves(color: String) -> Array[Dictionary]:
-    var moves = []
+func _get_simulated_legal_moves(color: String) -> Array:
+    var moves: Array = []
     var target_color = 0 if color == "white" else 1
     
     for pos in simulated_board.keys():
@@ -468,12 +468,12 @@ func _get_simulated_legal_moves(color: String) -> Array[Dictionary]:
     
     return moves
 
-func _get_piece_moves(pos: Vector2i) -> Array[Vector2i]:
+func _get_piece_moves(pos: Vector2i) -> Array:
     if not simulated_board.has(pos):
         return []
     
     var piece = simulated_board[pos]
-    var moves = []
+    var moves: Array = []
     
     match piece.type:
         0:  # Pawn

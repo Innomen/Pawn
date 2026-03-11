@@ -7,8 +7,8 @@ class_name Gambit
 @export var difficulty: int = 1  # 1-5
 @export var description: String = ""
 @export var target_fen: String = ""
-@export var moves: Array[String] = []  # SAN notation
-@export var expected_responses: Array[String] = []  # Expected opponent responses
+@export var moves: Array = []  # SAN notation
+@export var expected_responses: Array = []  # Expected opponent responses
 @export var for_color: String = "white"
 
 func is_applicable(game_state: Node) -> bool:

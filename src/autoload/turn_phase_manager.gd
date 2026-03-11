@@ -101,7 +101,7 @@ func _run_cleanup():
     }
     
     # Remove duplicates from completed_gambits
-    var unique_completed = []
+    var unique_completed: Array = []
     var dups = 0
     for id in GameState.completed_gambits:
         if not id in unique_completed:
@@ -112,14 +112,14 @@ func _run_cleanup():
     cleanup_results.duplicates_removed = dups
     
     # Remove duplicates from failed_gambits
-    var unique_failed = []
+    var unique_failed: Array = []
     for id in GameState.failed_gambits:
         if not id in unique_failed:
             unique_failed.append(id)
     GameState.failed_gambits = unique_failed
     
     # Remove from failed if now in completed
-    var cleaned_failed = []
+    var cleaned_failed: Array = []
     for id in GameState.failed_gambits:
         if not id in GameState.completed_gambits:
             cleaned_failed.append(id)

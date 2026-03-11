@@ -15,11 +15,11 @@ enum PieceColor { WHITE, BLACK }
 
 var board: Dictionary = {}  # Vector2i -> Piece
 var current_turn: String = "white"
-var move_history: Array[Dictionary] = []
+var move_history: Array = []
 var game_status: String = "active"  # active, checkmate, stalemate, draw
 
-var completed_gambits: Array[String] = []
-var failed_gambits: Array[String] = []
+var completed_gambits: Array = []
+var failed_gambits: Array = []
 var active_gambit: Gambit = null
 
 var white_king_pos: Vector2i = Vector2i(4, 7)
@@ -74,12 +74,12 @@ func get_piece(pos: Vector2i) -> Dictionary:
         return board[pos]
     return {}
 
-func make_move(from: Vector2i, to: Vector2i) -> bool:
-    if not board.has(from):
-        DebugLogger.log_warning("Move failed: no piece at " + str(from))
+func make_move(from_pos: Vector2i, to_pos: Vector2i) -> bool:
+    if not board.has(from_pos):
+        DebugLogger.log_warning("Move failed: no piece at " + str(from_pos))
         return false
     
-    var piece = board[from]
+    var piece = board[from_pos]
     var is_white = piece.color == PieceColor.WHITE
     
     # Check if it's this piece's turn
@@ -88,37 +88,37 @@ func make_move(from: Vector2i, to: Vector2i) -> bool:
         return false
     
     # Validate move
-    if not is_valid_move(from, to):
-        DebugLogger.log_warning("Move failed: invalid move from " + str(from) + " to " + str(to))
+    if not is_valid_move(from_pos, to_pos):
+        DebugLogger.log_warning("Move failed: invalid move from " + str(from_pos) + " to " + str(to_pos))
         return false
     
     var piece_type_str = _piece_type_to_string(piece.type)
-    DebugLogger.log_move(from, to, piece_type_str, current_turn)
+    DebugLogger.log_move(from_pos, to_pos, piece_type_str, current_turn)
     
     # Check for capture
     var captured = null
-    if board.has(to):
-        captured = board[to]
+    if board.has(to_pos):
+        captured = board[to_pos]
         piece_captured.emit(captured, "white" if captured.color == PieceColor.WHITE else "black")
-        DebugLogger.log_info("Capture: " + _piece_type_to_string(captured.type) + " at " + str(to))
+        DebugLogger.log_info("Capture: " + _piece_type_to_string(captured.type) + " at " + str(to_pos))
     
     # Execute move
-    board.erase(from)
-    board[to] = piece
-    piece.pos = to
+    board.erase(from_pos)
+    board[to_pos] = piece
+    piece.pos = to_pos
     piece.has_moved = true
     
     # Update king position
     if piece.type == PieceType.KING:
         if is_white:
-            white_king_pos = to
+            white_king_pos = to_pos
         else:
-            black_king_pos = to
+            black_king_pos = to_pos
     
     # Record move
     var move_record = {
-        "from": from,
-        "to": to,
+        "from": from_pos,
+        "to": to_pos,
         "piece": piece.duplicate(),
         "captured": captured,
         "turn": current_turn
@@ -132,22 +132,21 @@ func make_move(from: Vector2i, to: Vector2i) -> bool:
     
     return true
 
-func is_valid_move(from: Vector2i, to: Vector2i) -> bool:
-    if not board.has(from):
+func is_valid_move(from_pos: Vector2i, to_pos: Vector2i) -> bool:
+    if not board.has(from_pos):
         return false
     
-    var piece = board[from]
-    var legal = get_legal_moves(from)
+    var legal = get_legal_moves(from_pos)
     
-    return to in legal
+    return to_pos in legal
 
-func get_legal_moves(pos: Vector2i) -> Array[Vector2i]:
+func get_legal_moves(pos: Vector2i) -> Array:
     if not board.has(pos):
         return []
     
     var piece = board[pos]
     var pseudo_legal = _get_pseudo_legal_moves(piece, pos)
-    var legal = []
+    var legal: Array = []
     
     for move in pseudo_legal:
         if _is_move_legal(pos, move):
@@ -155,8 +154,8 @@ func get_legal_moves(pos: Vector2i) -> Array[Vector2i]:
     
     return legal
 
-func _get_pseudo_legal_moves(piece: Dictionary, pos: Vector2i) -> Array[Vector2i]:
-    var moves = []
+func _get_pseudo_legal_moves(piece: Dictionary, pos: Vector2i) -> Array:
+    var moves: Array = []
     
     match piece.type:
         PieceType.PAWN:
@@ -174,8 +173,8 @@ func _get_pseudo_legal_moves(piece: Dictionary, pos: Vector2i) -> Array[Vector2i
     
     return moves
 
-func _get_pawn_moves(piece: Dictionary, pos: Vector2i) -> Array[Vector2i]:
-    var moves = []
+func _get_pawn_moves(piece: Dictionary, pos: Vector2i) -> Array:
+    var moves: Array = []
     var direction = -1 if piece.color == PieceColor.WHITE else 1
     var start_rank = 6 if piece.color == PieceColor.WHITE else 1
     
@@ -200,33 +199,33 @@ func _get_pawn_moves(piece: Dictionary, pos: Vector2i) -> Array[Vector2i]:
     
     return moves
 
-func _get_knight_moves(piece: Dictionary, pos: Vector2i) -> Array[Vector2i]:
+func _get_knight_moves(piece: Dictionary, pos: Vector2i) -> Array:
     var offsets = [
         Vector2i(2, 1), Vector2i(2, -1), Vector2i(-2, 1), Vector2i(-2, -1),
         Vector2i(1, 2), Vector2i(1, -2), Vector2i(-1, 2), Vector2i(-1, -2)
     ]
     return _get_moves_from_offsets(piece, pos, offsets)
 
-func _get_bishop_moves(piece: Dictionary, pos: Vector2i) -> Array[Vector2i]:
+func _get_bishop_moves(piece: Dictionary, pos: Vector2i) -> Array:
     return _get_sliding_moves(piece, pos, [Vector2i(1, 1), Vector2i(1, -1), Vector2i(-1, 1), Vector2i(-1, -1)])
 
-func _get_rook_moves(piece: Dictionary, pos: Vector2i) -> Array[Vector2i]:
+func _get_rook_moves(piece: Dictionary, pos: Vector2i) -> Array:
     return _get_sliding_moves(piece, pos, [Vector2i(1, 0), Vector2i(-1, 0), Vector2i(0, 1), Vector2i(0, -1)])
 
-func _get_queen_moves(piece: Dictionary, pos: Vector2i) -> Array[Vector2i]:
+func _get_queen_moves(piece: Dictionary, pos: Vector2i) -> Array:
     var bishop_moves = _get_bishop_moves(piece, pos)
     var rook_moves = _get_rook_moves(piece, pos)
     return bishop_moves + rook_moves
 
-func _get_king_moves(piece: Dictionary, pos: Vector2i) -> Array[Vector2i]:
+func _get_king_moves(piece: Dictionary, pos: Vector2i) -> Array:
     var offsets = [
         Vector2i(1, 0), Vector2i(-1, 0), Vector2i(0, 1), Vector2i(0, -1),
         Vector2i(1, 1), Vector2i(1, -1), Vector2i(-1, 1), Vector2i(-1, -1)
     ]
     return _get_moves_from_offsets(piece, pos, offsets)
 
-func _get_moves_from_offsets(piece: Dictionary, pos: Vector2i, offsets: Array[Vector2i]) -> Array[Vector2i]:
-    var moves = []
+func _get_moves_from_offsets(piece: Dictionary, pos: Vector2i, offsets: Array) -> Array:
+    var moves: Array = []
     for offset in offsets:
         var target = pos + offset
         if _is_on_board(target):
@@ -234,8 +233,8 @@ func _get_moves_from_offsets(piece: Dictionary, pos: Vector2i, offsets: Array[Ve
                 moves.append(target)
     return moves
 
-func _get_sliding_moves(piece: Dictionary, pos: Vector2i, directions: Array[Vector2i]) -> Array[Vector2i]:
-    var moves = []
+func _get_sliding_moves(piece: Dictionary, pos: Vector2i, directions: Array) -> Array:
+    var moves: Array = []
     
     for dir in directions:
         var target = pos + dir
@@ -253,26 +252,26 @@ func _get_sliding_moves(piece: Dictionary, pos: Vector2i, directions: Array[Vect
 func _is_on_board(pos: Vector2i) -> bool:
     return pos.x >= 0 and pos.x < 8 and pos.y >= 0 and pos.y < 8
 
-func _is_move_legal(from: Vector2i, to: Vector2i) -> bool:
+func _is_move_legal(from_pos: Vector2i, to_pos: Vector2i) -> bool:
     # Would need to check if move puts/leaves king in check
     # For now, just check basic validity
-    var piece = board[from]
+    var piece = board[from_pos]
     
     # Make temporary move
     var saved_piece = null
-    if board.has(to):
-        saved_piece = board[to].duplicate()
+    if board.has(to_pos):
+        saved_piece = board[to_pos].duplicate()
     
-    board[to] = piece
-    board.erase(from)
+    board[to_pos] = piece
+    board.erase(from_pos)
     
     var king_in_check = _is_king_in_check(piece.color)
     
     # Undo move
-    board[from] = piece
-    board.erase(to)
+    board[from_pos] = piece
+    board.erase(to_pos)
     if saved_piece:
-        board[to] = saved_piece
+        board[to_pos] = saved_piece
     
     return not king_in_check
 
@@ -393,16 +392,6 @@ func _piece_to_fen(piece: Dictionary) -> String:
         char = char.to_upper()
     return char
 
-func _piece_type_to_string(type: int) -> String:
-    match type:
-        PieceType.PAWN: return "Pawn"
-        PieceType.KNIGHT: return "Knight"
-        PieceType.BISHOP: return "Bishop"
-        PieceType.ROOK: return "Rook"
-        PieceType.QUEEN: return "Queen"
-        PieceType.KING: return "King"
-    return "Unknown"
-
 func from_fen(fen: String):
     board.clear()
     
@@ -433,3 +422,13 @@ func _fen_to_type(char: String) -> int:
         "q": return PieceType.QUEEN
         "k": return PieceType.KING
     return PieceType.PAWN
+
+func _piece_type_to_string(type: int) -> String:
+    match type:
+        PieceType.PAWN: return "Pawn"
+        PieceType.KNIGHT: return "Knight"
+        PieceType.BISHOP: return "Bishop"
+        PieceType.ROOK: return "Rook"
+        PieceType.QUEEN: return "Queen"
+        PieceType.KING: return "King"
+    return "Unknown"

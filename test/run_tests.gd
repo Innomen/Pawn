@@ -52,8 +52,11 @@ func _run():
         log_file.close()
         print("Log saved to: " + log_path)
     
-    # Quit
-    if Engine.is_editor_hint():
+    # Quit using scene tree if available, otherwise just print done
+    var tree = Engine.get_main_loop()
+    if tree and not Engine.is_editor_hint():
+        tree.quit(exit_code)
+    elif Engine.is_editor_hint():
         print("(Running in editor - not quitting)")
     else:
-        quit(exit_code)
+        print("Done - exit manually")

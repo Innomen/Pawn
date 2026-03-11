@@ -16,7 +16,7 @@ func _ready():
     thinking_timer.timeout.connect(_on_thinking_timeout)
     add_child(thinking_timer)
     
-    print("OpponentAI initialized")
+    DebugLogger.log_info("OpponentAI initialized")
 
 func set_opponent(type: Difficulty, color: String):
     difficulty = type
@@ -34,7 +34,7 @@ func set_opponent(type: Difficulty, color: String):
             current_opponent.search_depth = 4
     
     current_opponent.color = color
-    print("Opponent set: " + str(type) + " playing as " + color)
+    DebugLogger.log_info("Opponent set: " + str(type) + " playing as " + color)
 
 func request_move():
     if not current_opponent:
@@ -57,8 +57,8 @@ func _calculate_move() -> Dictionary:
     
     return current_opponent.get_move(GameState)
 
-func get_all_legal_moves(color: String) -> Array[Dictionary]:
-    var moves = []
+func get_all_legal_moves(color: String) -> Array:
+    var moves: Array = []
     var target_color = GameState.PieceColor.WHITE if color == "white" else GameState.PieceColor.BLACK
     
     for pos in GameState.board.keys():
@@ -74,7 +74,7 @@ func get_all_legal_moves(color: String) -> Array[Dictionary]:
     
     return moves
 
-func evaluate_position(game_state: GameState = GameState) -> int:
+func evaluate_position(game_state: Node = GameState) -> int:
     if game_state.is_game_over():
         if game_state.game_status == "checkmate":
             var winner = "black" if game_state.current_turn == "white" else "white"
