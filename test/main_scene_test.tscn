@@ -1,0 +1,22 @@
+[gd_scene load_steps=6 format=3 uid="uid://main_scene_test"]
+
+[ext_resource type="Script" path="res://src/autoload/debug_logger.gd" id="1_dl"]
+[ext_resource type="Script" path="res://src/autoload/game_state.gd" id="2_gs"]
+[ext_resource type="Script" path="res://src/autoload/gambit_engine.gd" id="3_ge"]
+[ext_resource type="Script" path="res://src/autoload/opponent_ai.gd" id="4_oa"]
+[ext_resource type="Script" path="res://test/main_scene_test.gd" id="5_test"]
+
+[node name="MainSceneTest" type="Node"]
+script = ExtResource("5_test")
+
+[node name="DebugLogger" type="Node" parent="."]
+script = ExtResource("1_dl")
+
+[node name="GameState" type="Node" parent="."]
+script = ExtResource("2_gs")
+
+[node name="GambitEngine" type="Node" parent="."]
+script = ExtResource("3_ge")
+
+[node name="OpponentAI" type="Node" parent="."]
+script = ExtResource("4_oa")
