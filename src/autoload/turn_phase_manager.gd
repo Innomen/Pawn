@@ -21,7 +21,7 @@ var turn_number: int = 1
 
 func _ready():
     GameState.turn_changed.connect(_on_turn_changed)
-    print("TurnPhaseManager initialized")
+    DebugLogger.log_info("TurnPhaseManager initialized")
 
 func start_turn(color: String):
     current_turn = color
@@ -30,6 +30,8 @@ func start_turn(color: String):
 
 func set_phase(phase: TurnPhase):
     current_phase = phase
+    var phase_name = TurnPhase.keys()[phase]
+    DebugLogger.log_phase_change(phase_name, current_turn)
     phase_changed.emit(phase)
     
     match phase:
@@ -90,12 +92,24 @@ func _process_end_phase():
     set_phase(TurnPhase.TURN_END)
 
 func _run_cleanup():
+    DebugLogger.log_debug("Running cleanup phase")
+    
+    var cleanup_results = {
+        "duplicates_removed": 0,
+        "failed_cleaned": 0,
+        "active_cleared": false
+    }
+    
     # Remove duplicates from completed_gambits
     var unique_completed = []
+    var dups = 0
     for id in GameState.completed_gambits:
         if not id in unique_completed:
             unique_completed.append(id)
+        else:
+            dups += 1
     GameState.completed_gambits = unique_completed
+    cleanup_results.duplicates_removed = dups
     
     # Remove duplicates from failed_gambits
     var unique_failed = []
@@ -109,6 +123,8 @@ func _run_cleanup():
     for id in GameState.failed_gambits:
         if not id in GameState.completed_gambits:
             cleaned_failed.append(id)
+        else:
+            cleanup_results.failed_cleaned += 1
     GameState.failed_gambits = cleaned_failed
     
     # Verify active gambit state
@@ -116,11 +132,13 @@ func _run_cleanup():
         if GameState.active_gambit.id in GameState.completed_gambits:
             GameState.active_gambit = null
             GambitEngine.active_gambit = null
+            cleanup_results.active_cleared = true
         elif GameState.active_gambit.id in GameState.failed_gambits:
             GameState.active_gambit = null
             GambitEngine.active_gambit = null
+            cleanup_results.active_cleared = true
     
-    print("Cleanup phase complete")
+    DebugLogger.log_cleanup_results(cleanup_results)
 
 func _process_turn_end():
     turn_ended.emit(current_turn)

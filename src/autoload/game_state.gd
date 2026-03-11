@@ -26,7 +26,7 @@ var white_king_pos: Vector2i = Vector2i(4, 7)
 var black_king_pos: Vector2i = Vector2i(4, 0)
 
 func _ready():
-    print("GameState initialized")
+    DebugLogger.log_info("GameState initialized")
 
 func setup_standard():
     board.clear()
@@ -41,7 +41,7 @@ func setup_standard():
     _setup_pawns()
     _setup_pieces()
     
-    print("Standard chess position set up")
+    DebugLogger.log_info("Standard chess position set up")
 
 func _setup_pawns():
     for file in range(8):
@@ -76,6 +76,7 @@ func get_piece(pos: Vector2i) -> Dictionary:
 
 func make_move(from: Vector2i, to: Vector2i) -> bool:
     if not board.has(from):
+        DebugLogger.log_warning("Move failed: no piece at " + str(from))
         return false
     
     var piece = board[from]
@@ -83,17 +84,23 @@ func make_move(from: Vector2i, to: Vector2i) -> bool:
     
     # Check if it's this piece's turn
     if (current_turn == "white" and not is_white) or (current_turn == "black" and is_white):
+        DebugLogger.log_warning("Move failed: wrong turn")
         return false
     
     # Validate move
     if not is_valid_move(from, to):
+        DebugLogger.log_warning("Move failed: invalid move from " + str(from) + " to " + str(to))
         return false
+    
+    var piece_type_str = _piece_type_to_string(piece.type)
+    DebugLogger.log_move(from, to, piece_type_str, current_turn)
     
     # Check for capture
     var captured = null
     if board.has(to):
         captured = board[to]
         piece_captured.emit(captured, "white" if captured.color == PieceColor.WHITE else "black")
+        DebugLogger.log_info("Capture: " + _piece_type_to_string(captured.type) + " at " + str(to))
     
     # Execute move
     board.erase(from)
@@ -286,15 +293,18 @@ func _check_game_state():
     var current_color = PieceColor.WHITE if current_turn == "white" else PieceColor.BLACK
     
     if _is_king_in_check(current_color):
+        DebugLogger.log_info("Check detected for: " + current_turn)
         check_detected.emit(current_turn)
         
         if _is_checkmate(current_color):
             game_status = "checkmate"
             var winner = "black" if current_turn == "white" else "white"
+            DebugLogger.log_game_event("CHECKMATE", {"winner": winner})
             game_ended.emit("checkmate", winner)
             checkmate_detected.emit(current_turn)
     elif _is_stalemate(current_color):
         game_status = "stalemate"
+        DebugLogger.log_game_event("STALEMATE", {})
         game_ended.emit("stalemate", "draw")
         stalemate_detected.emit()
 
@@ -321,6 +331,7 @@ func _has_any_legal_moves(color: int) -> bool:
 
 func switch_turn():
     current_turn = "black" if current_turn == "white" else "white"
+    DebugLogger.log_info("Turn switched to: " + current_turn)
     turn_changed.emit(current_turn)
 
 func is_game_over() -> bool:
@@ -381,6 +392,16 @@ func _piece_to_fen(piece: Dictionary) -> String:
     if piece.color == PieceColor.WHITE:
         char = char.to_upper()
     return char
+
+func _piece_type_to_string(type: int) -> String:
+    match type:
+        PieceType.PAWN: return "Pawn"
+        PieceType.KNIGHT: return "Knight"
+        PieceType.BISHOP: return "Bishop"
+        PieceType.ROOK: return "Rook"
+        PieceType.QUEEN: return "Queen"
+        PieceType.KING: return "King"
+    return "Unknown"
 
 func from_fen(fen: String):
     board.clear()

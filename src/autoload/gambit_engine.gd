@@ -20,33 +20,37 @@ func _ready():
     add_child(auto_execute_timer)
     
     GameState.move_made.connect(_on_move_made)
-    print("GambitEngine initialized")
+    DebugLogger.log_info("GambitEngine initialized")
 
 func activate_gambit(gambit_id: String) -> bool:
+    DebugLogger.log_debug("Attempting to activate gambit: " + gambit_id)
+    
     if GameState.is_game_over():
+        DebugLogger.log_warning("Cannot activate gambit - game over")
         return false
     
     var gambit = GambitRegistry.get_gambit(gambit_id)
     if not gambit:
-        push_error("Gambit not found: " + gambit_id)
+        DebugLogger.log_error("Gambit not found: " + gambit_id)
         return false
     
     # Check if already completed or failed
     if gambit_id in GameState.completed_gambits:
-        push_warning("Gambit already completed: " + gambit_id)
+        DebugLogger.log_warning("Gambit already completed: " + gambit_id)
         return false
     
     if gambit_id in GameState.failed_gambits:
-        push_warning("Gambit already failed: " + gambit_id)
+        DebugLogger.log_warning("Gambit already failed: " + gambit_id)
         return false
     
     # Check if applicable
     if not gambit.is_applicable(GameState):
-        push_warning("Gambit not applicable in current position: " + gambit_id)
+        DebugLogger.log_warning("Gambit not applicable in current position: " + gambit_id)
         return false
     
     # Check if another gambit is active
     if active_gambit != null:
+        DebugLogger.log_info("Interrupting active gambit for new activation")
         interrupt_gambit("New gambit activated")
     
     # Activate gambit
@@ -55,10 +59,10 @@ func activate_gambit(gambit_id: String) -> bool:
     expected_opponent_move = ""
     GameState.active_gambit = gambit
     
+    DebugLogger.log_gambit_activated(gambit_id, gambit.name)
+    
     gambit_activated.emit(gambit)
     GameState.gambit_started.emit(gambit)
-    
-    print("Gambit activated: " + gambit.name)
     
     return true
 
@@ -217,7 +221,7 @@ func interrupt_gambit(reason: String = ""):
     if not active_gambit:
         return
     
-    print("Gambit interrupted: " + active_gambit.name + " - " + reason)
+    DebugLogger.log_gambit_completed(active_gambit.id, false, reason)
     
     GameState.failed_gambits.append(active_gambit.id)
     
@@ -230,7 +234,7 @@ func _complete_gambit():
     if not active_gambit:
         return
     
-    print("Gambit completed: " + active_gambit.name)
+    DebugLogger.log_gambit_completed(active_gambit.id, true, "completed")
     
     GameState.completed_gambits.append(active_gambit.id)
     
